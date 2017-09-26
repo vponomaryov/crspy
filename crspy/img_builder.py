@@ -81,7 +81,7 @@ def generate_images(path_to_month_dir):
 
     for currency in ('usd', 'euro'):
         CURRENCY = currency.upper()
-        plt.figure(figsize=(16, 4.6))
+        plt.figure(figsize=(18, 4.6))
         plt.title('%s rates' % CURRENCY)
 
         x = data['x_indexes']
