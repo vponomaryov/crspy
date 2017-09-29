@@ -9,6 +9,8 @@ import re
 import sys
 import time
 
+import matplotlib
+matplotlib.use('Agg') # Must be before importing matplotlib.pyplot
 import matplotlib.pyplot as plt
 
 from crspy.collector import print_with_time
