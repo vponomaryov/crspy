@@ -30,64 +30,76 @@ def find_json_files(directory):
 
 
 def generate_images(path_to_month_dir):
+    currecies = ('usd', 'euro')
     data = {
         currency: {
+            'x_indexes': [],
+            'x_sticks': [],
             'x': {'buy_max': [], 'sell_min': []},
             'y': {'buy': [], 'buy_max': [], 'sell': [], 'sell_min': []},
-        } for currency in ('usd', 'euro')
+        } for currency in currecies
     }
-    data['x_indexes'] = []
-    data['x_sticks'] = []
     target_dir = os.path.join(
         os.path.abspath(path_to_month_dir), os.path.pardir)
     fileformat = 'png'
 
-    for i, f in enumerate(sorted(find_json_files(path_to_month_dir))):
-        with open(f, 'r') as filedata:
-            json_data = json.loads(filedata.read())
-            ind_kurs = json_data['Индикативный курс']
-            u_buy = int(ind_kurs['Доллар/Гривна']['they_buy'])
-            u_sell = int(ind_kurs['Доллар/Гривна']['they_sell'])
-            e_buy = int(ind_kurs['Евро/Гривна']['they_buy'])
-            e_sell = int(ind_kurs['Евро/Гривна']['they_sell'])
-
-            data['x_indexes'].append(i)
-            date = datetime.datetime.strptime(
-                f.split('/')[-1].split('.')[0], '%Y_%m_%d__%H_%M_%S')
-            data['x_sticks'].append(date.strftime("%Y-%m-%d %H:%M"))
-            data['usd']['y']['buy'].append(u_buy)
-            data['usd']['y']['sell'].append(u_sell)
-            data['euro']['y']['buy'].append(e_buy)
-            data['euro']['y']['sell'].append(e_sell)
-
-            for currency, op, value in (('usd', 'buy_max', u_buy),
-                                        ('usd', 'sell_min', u_sell),
-                                        ('euro', 'buy_max', e_buy),
-                                        ('euro', 'sell_min', e_sell)):
-                x = data[currency]['x'][op]
-                y = data[currency]['y'][op]
-                if y:
-                    y0 = int(y[0])
-                    func = y0.__gt__ if op == 'sell_min' else y0.__lt__
-                    if func(value):
-                        x.clear()
-                        x.append(i)
-                        y.clear()
-                        y.append(value)
-                    elif y0 == value:
-                        x.append(i)
-                        y.append(value)
+    for f in sorted(find_json_files(path_to_month_dir)):
+        for currency in currecies:
+            with open(f, 'r') as filedata:
+                json_data = json.loads(filedata.read())
+                ind_kurs = json_data['Индикативный курс']
+                if currency == 'usd':
+                    buy = int(ind_kurs['Доллар/Гривна']['they_buy'])
+                    sell = int(ind_kurs['Доллар/Гривна']['they_sell'])
                 else:
-                    x.append(i)
-                    y.append(value)
+                    buy = int(ind_kurs['Евро/Гривна']['they_buy'])
+                    sell = int(ind_kurs['Евро/Гривна']['they_sell'])
 
-    for currency in ('usd', 'euro'):
+                date = datetime.datetime.strptime(
+                    f.split('/')[-1].split('.')[0], '%Y_%m_%d__%H_%M_%S')
+                date = date.strftime("%Y-%m-%d %H:%M")
+
+                current_index = len(data[currency]['x_sticks'])
+                if (len(data[currency]['y']['buy']) > 1 and
+                        buy == data[currency]['y']['buy'][-1] and
+                        buy == data[currency]['y']['buy'][-2] and
+                        sell == data[currency]['y']['sell'][-1] and
+                        sell == data[currency]['y']['sell'][-2]):
+                    data[currency]['x_sticks'][-1] = date
+                    data[currency]['y']['buy'][-1] = buy
+                    data[currency]['y']['sell'][-1] = sell
+                else:
+                    current_index += 1
+                    data[currency]['x_sticks'].append(date)
+                    data[currency]['x_indexes'].append(current_index)
+                    data[currency]['y']['buy'].append(buy)
+                    data[currency]['y']['sell'].append(sell)
+
+                for op, value in (('buy_max', buy), ('sell_min', sell)):
+                    x = data[currency]['x'][op]
+                    y = data[currency]['y'][op]
+                    if y:
+                        y0 = int(y[0])
+                        func = y0.__gt__ if op == 'sell_min' else y0.__lt__
+                        if func(value):
+                            x.clear()
+                            x.append(current_index)
+                            y.clear()
+                            y.append(value)
+                        elif y0 == value:
+                            x.append(current_index)
+                            y.append(value)
+                    else:
+                        x.append(current_index)
+                        y.append(value)
+
+    for currency in currecies:
         CURRENCY = currency.upper()
         plt.figure(figsize=(18, 4.6))
         plt.title('%s rates' % CURRENCY)
 
-        x = data['x_indexes']
-        plt.xticks(x, data['x_sticks'], rotation=90, size='small')
+        x = data[currency]['x_indexes']
+        plt.xticks(x, data[currency]['x_sticks'], rotation=90, size='small')
         for op, color in (('sell', 'blue'), ('buy', 'red')):
             plt.plot(x, data[currency]['y'][op],
                      color=color, label='They %s' % op, linewidth=2)
