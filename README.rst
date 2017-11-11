@@ -45,5 +45,10 @@ To build images from collected data run following:
 
     $ python3 -m crspy.img_builder
 
-It creates images with graphs per each month of each available year
-and puts it them to 'data/year_%year%' dirs.
+To build images only for specific year run following:
+
+    $ python3 -m crspy.img_builder year=2017
+
+To build images only for specific month of a year run following:
+
+    $ python3 -m crspy.img_builder year=2017 month=11

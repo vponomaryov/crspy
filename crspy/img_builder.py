@@ -132,13 +132,70 @@ def generate_images(path_to_month_dir):
     plt.close('all')
 
 
+def parse_args():
+    args = sys.argv[1:]
+    if len(args) == 0:
+        return None, None
+    elif len(args) > 2:
+        print_with_time(
+            "Only 2 keys are expected - 'year=20YY' and 'month=XX'.")
+        sys.exit(1)
+    else:
+        y = m = None
+        for a in args:
+            if a.startswith("year="):
+                if not y:
+                    if re.search("year=(20[0-9]{2})$", a):
+                        y = a.split("=")[1]
+                    else:
+                        print_with_time(
+                            "Wrong value for 'month' arg - '%s'." % a)
+                        sys.exit(1)
+                else:
+                    print_with_time("Duplication of 'year' arg.")
+                    sys.exit(1)
+            elif a.startswith("month="):
+                if not m:
+                    if re.search("month=([1-9]{1}|0[1-9]{1}|1[0-2]{1})$", a):
+                        m = a.split("=")[1]
+                        m = (m if len(m) == 2 else '0%s' % m)
+                    else:
+                        print_with_time(
+                            "Wrong value for 'month' arg - '%s'." % a)
+                        sys.exit(1)
+                else:
+                    print_with_time("Duplication of 'month' arg.")
+                    sys.exit(1)
+            else:
+                print_with_time("Unsupported argument - '%s'" % a)
+                sys.exit(1)
+    if m and not y:
+        print_with_time(
+            "If 'month' arg is specified, then 'year' should be specified too")
+        sys.exit(1)
+    return y, m
+
+
 def main():
+    y, m = parse_args()
+    ypattern = 'year_20[0-9]{2}$' if not y else 'year_%s$' % y
+    mpattern = 'month_(0[1-9]{1}|1[0-2]{1})$' if not m else 'month_%s$' % m
+    print_with_time(
+        "Building image(s) using '%(y)s' pattern for year and "
+        "'%(m)s' for month." % {'y': ypattern, 'm': mpattern}
+    )
+
+    matches = 0
     for ydirname in os.listdir('data'):
-        if re.search('year_20[0-9]{2}$', ydirname):
+        if re.search(ypattern, ydirname):
             for mdirname in os.listdir('data/' + ydirname):
-                if re.search('month_(0[1-9]{1}|1[0-2]{1})$', mdirname):
+                if re.search(mpattern, mdirname):
+                    matches += 1
                     generate_images(
                         ''.join(['data', '/', ydirname, '/', mdirname]))
+    if not matches:
+        print_with_time("Warning! No data found satisfying patterns.")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
