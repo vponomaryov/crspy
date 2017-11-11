@@ -15,11 +15,6 @@ import matplotlib.pyplot as plt
 
 from crspy.collector import print_with_time
 
-# TODO:
-# - don't rebuild image if data are the same
-# - save images to separate top dir?
-# - include date of build to image?
-
 
 def find_json_files(directory):
     for root, dirs, files in os.walk(directory):
