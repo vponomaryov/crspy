@@ -90,7 +90,7 @@ def generate_images(path_to_month_dir):
 
     for currency in currecies:
         CURRENCY = currency.upper()
-        plt.figure(figsize=(18, 4.6))
+        plt.figure(figsize=(22.8, 9))
         plt.title('%s rates' % CURRENCY)
 
         x = data[currency]['x_indexes']
@@ -108,7 +108,7 @@ def generate_images(path_to_month_dir):
         plt.subplots_adjust(bottom=0.32)
 
         # Pad margins so that markers don't get clipped by the axes
-        plt.margins(0.05)
+        plt.margins(0.0)
 
         # Set grid
         plt.grid(
@@ -123,7 +123,9 @@ def generate_images(path_to_month_dir):
             '%s_' % currency, f.split("__")[0].split('/')[-1][:-3]))
         filepath = os.path.join(target_dir, filename)
         print_with_time('Creating image at %s.%s' % (filepath, fileformat))
-        plt.savefig('%s.%s' % (filepath, fileformat), format=fileformat)
+        plt.savefig(
+            '%s.%s' % (filepath, fileformat), format=fileformat,
+            bbox_inches='tight', pad_inches=0.15)
     plt.close('all')
 
 
