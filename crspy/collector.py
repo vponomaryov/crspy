@@ -70,7 +70,8 @@ def main():
         # ]
         parsed_data = {}
         for datum in data[1:]:
-            if 'Гривна' in datum:
+            datum = datum.lower()
+            if 'гривна' in datum or 'uah' in datum:
                 currency_pair, they_buy, they_sell = datum.split(' ')
                 parsed_data[currency_pair] = {
                     'they_buy': they_buy,

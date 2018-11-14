@@ -15,6 +15,10 @@ import matplotlib.pyplot as plt
 
 from crspy.collector import print_with_time
 
+parent_object_labels = ("Индикативный курс", )
+usd_uah_labels = ("usd/uah", "USD/UAH", "Доллар/Гривна", "доллар/гривна")
+eur_uah_labels = ("eur/uah", "EUR/UAH", "Евро/Гривна", "евро/гривна")
+
 
 def find_json_files(directory):
     for root, dirs, files in os.walk(directory):
@@ -22,6 +26,14 @@ def find_json_files(directory):
             if fnmatch.fnmatch(basename, '*.json'):
                 filename = os.path.join(root, basename)
                 yield filename
+
+
+def get_any_item(target, items):
+    for item in items:
+        try:
+            return target[item]
+        except KeyError:
+            continue
 
 
 def generate_images(path_to_month_dir):
@@ -42,13 +54,15 @@ def generate_images(path_to_month_dir):
         for currency in currecies:
             with open(f, 'r') as filedata:
                 json_data = json.loads(filedata.read())
-                ind_kurs = json_data['Индикативный курс']
+                ind_kurs = get_any_item(json_data, parent_object_labels)
                 if currency == 'usd':
-                    buy = int(ind_kurs['Доллар/Гривна']['they_buy'])
-                    sell = int(ind_kurs['Доллар/Гривна']['they_sell'])
+                    usd_data = get_any_item(ind_kurs, usd_uah_labels)
+                    buy = int(usd_data['they_buy'])
+                    sell = int(usd_data['they_sell'])
                 else:
-                    buy = int(ind_kurs['Евро/Гривна']['they_buy'])
-                    sell = int(ind_kurs['Евро/Гривна']['they_sell'])
+                    eur_data = get_any_item(ind_kurs, eur_uah_labels)
+                    buy = int(eur_data['they_buy'])
+                    sell = int(eur_data['they_sell'])
 
                 date = datetime.datetime.strptime(
                     f.split('/')[-1].split('.')[0], '%Y_%m_%d__%H_%M_%S')
