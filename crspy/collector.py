@@ -11,10 +11,9 @@ from selenium.webdriver.firefox import firefox_binary
 
 URL = "http://kurs.kharkov.com"
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-RETAIL_TABLE_XPATH = (
-    "//div[@class='retail-exchange']/table[@class='features-table']")
 COMMON_TABLE_XPATH = (
-    "//div[@class='wholesale-exchange']/table[@class='features-table']")
+    "//div[contains(@class, 'left-table')]/div[@class='jsgrid']"
+    "/div[@class='jsgrid-grid-body']/table[@class='jsgrid-table']")
 DATA_DIR = os.path.abspath(__file__ + "/../../data")
 FF_BIN_DEFAULT_PATH = '~/Documents/32bit/firefox/firefox'
 
@@ -61,23 +60,32 @@ def main():
 
     collected_data = {}
 
-    for xpath in (RETAIL_TABLE_XPATH, COMMON_TABLE_XPATH):
-        data = browser.find_elements_by_xpath(xpath)[0].text.split('\n')
-        # data = [
-        #    'Индикативный курс', 'Покупка Продажа',
-        #    'Доллар/Гривна 2635 2655', 'Евро/Гривна 3110 3150',
-        #    'Рубль/Гривна 0.447 0.458', 'Евро/Доллар 1,182 1,19'
-        # ]
-        parsed_data = {}
-        for datum in data[1:]:
-            datum = datum.lower()
-            if 'гривна' in datum or 'uah' in datum:
-                currency_pair, they_buy, they_sell = datum.split(' ')
-                parsed_data[currency_pair] = {
-                    'they_buy': they_buy,
-                    'they_sell': they_sell,
-                }
-        collected_data[data[0]] = parsed_data
+    data = browser.find_elements_by_xpath(
+        COMMON_TABLE_XPATH)[0].text.split('\n')
+    # Old:
+    # data = [
+    #    'Индикативный курс', 'Покупка Продажа',
+    #    'Доллар/Гривна 2635 2655', 'Евро/Гривна 3110 3150',
+    #    'Рубль/Гривна 0.447 0.458', 'Евро/Доллар 1,182 1,19'
+    # ]
+    # New:
+    # data = [
+    #    'EUR/UAH 3050 3075', 'RUB/UAH 0.416 0.424',
+    #    'EUR/USD 1,122 1,128', 'GBR/UAH', 'PLH/UAH', 'BYN/UAH'
+    # ]
+    parsed_data = {}
+    for datum in data:
+        datum = datum.lower()
+        if not ('гривна' in datum or 'uah' in datum):
+            continue
+        if len(datum.split(' ')) != 3:
+            continue
+        currency_pair, they_buy, they_sell = datum.split(' ')
+        parsed_data[currency_pair] = {
+            'they_buy': they_buy,
+            'they_sell': they_sell,
+        }
+    collected_data['Индикативный курс'] = parsed_data
 
     ############################ Terminate webdriver ##########################
     try:
