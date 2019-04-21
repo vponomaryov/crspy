@@ -57,12 +57,16 @@ def generate_images(path_to_month_dir):
                 ind_kurs = get_any_item(json_data, parent_object_labels)
                 if currency == 'usd':
                     usd_data = get_any_item(ind_kurs, usd_uah_labels)
-                    buy = int(usd_data['they_buy'])
-                    sell = int(usd_data['they_sell'])
+                    buy = int(usd_data['they_buy'].replace(
+                        '.', '').replace(',', ''))
+                    sell = int(usd_data['they_sell'].replace(
+                        '.', '').replace(',', ''))
                 else:
                     eur_data = get_any_item(ind_kurs, eur_uah_labels)
-                    buy = int(eur_data['they_buy'])
-                    sell = int(eur_data['they_sell'])
+                    buy = int(eur_data['they_buy'].replace(
+                        '.', '').replace(',', ''))
+                    sell = int(eur_data['they_sell'].replace(
+                        '.', '').replace(',', ''))
 
                 date = datetime.datetime.strptime(
                     f.split('/')[-1].split('.')[0], '%Y_%m_%d__%H_%M_%S')
