@@ -54,7 +54,12 @@ def main():
     updated_at = browser.find_elements_by_xpath(
         "//div[@class='retail-exchange']/b")[0].text.split(': ')[-1]
 
-    updated_at_dt = datetime.datetime.strptime(updated_at, '%d.%m.%Y - %H:%M')
+    try:
+        updated_at_dt = datetime.datetime.strptime(
+            updated_at, '%d.%m.%Y - %H:%M')
+    except ValueError:
+        updated_at_dt = datetime.datetime.strptime(
+            ' - '.join(updated_at.split(' ')[-2:]), '%d.%m.%Y - %H:%M')
     updated_at = updated_at_dt.strftime(TIME_FORMAT)
     print_with_time('Currency rates updated at ' + updated_at)
 
