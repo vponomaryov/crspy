@@ -1,4 +1,5 @@
 import datetime
+import fnmatch
 import json
 import os
 import sys
@@ -104,27 +105,38 @@ def main():
             print_with_time(
                 'Caught following exception trying CLOSE browser: %s' % e)
 
-    ############################# Handling data ###############################
+    ############################ Processing data ##############################
     parsed_data_str = json.dumps(
         collected_data, indent=4, sort_keys=True, ensure_ascii=False)
+    month = '%s' % updated_at_dt.month
+    month = month if len(month) == 2 else '0' + month
+    subdir = 'year_%s/month_%s/' % (updated_at_dt.year, month)
+    dir_path = os.path.join(DATA_DIR, subdir)
+    filename = updated_at.replace(
+        ' ', '__').replace(':', '_').replace('-', '_') + '.json'
+    file_path = os.path.join(dir_path, filename)
+
+    # Read previous file and make sure that our new file is not duplicate
+    if not os.path.exists(dir_path):
+        print_with_time("Creating '%s' dir..." % dir_path)
+        os.makedirs(dir_path)
+    unique_data, sorted_files = True, sorted(os.listdir(dir_path))
+    if (sorted_files and fnmatch.fnmatch(sorted_files[-1], '*.json')):
+        with open(os.path.join(dir_path, sorted_files[-1]), 'r') as filedata:
+            latest_json_data = json.loads(filedata.read())
+        if latest_json_data == collected_data:
+            unique_data = False
 
     # Write to file if not test mode
-    if 'test' not in sys.argv[1:]:
-        month = '%s' % updated_at_dt.month
-        month = month if len(month) == 2 else '0' + month
-        subdir = 'year_%s/month_%s/' % (updated_at_dt.year, month)
-        filename = updated_at.replace(
-            ' ', '__').replace(':', '_').replace('-', '_') + '.json'
-        dir_path = os.path.join(DATA_DIR, subdir)
-        file_path = os.path.join(dir_path, filename)
+    if 'test' not in sys.argv[1:] and unique_data:
         print_with_time('Writing collected data to file %s' % file_path)
-        if not os.path.exists(dir_path):
-            print_with_time("Creating '%s' dir..." % dir_path)
-            os.makedirs(dir_path)
         with open(file_path, 'w') as datafile:
             datafile.write(parsed_data_str)
     else:
-        print_with_time("Found 'test' arg, skipping writing to file.")
+        print_with_time(
+            "SKIP writing to file. "
+            "Reason: 'test' arg is present and/or parsed data is "
+            "the same as in the previous file.")
 
     print_with_time('Data: \n%s' % parsed_data_str)
     print_with_time('Successfully ended work, exiting.')
