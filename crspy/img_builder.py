@@ -36,6 +36,16 @@ def get_any_item(target, items):
             continue
 
 
+def complement_string_with_zeros(s, expected_length=4):
+    if not isinstance(s, str):
+        raise ValueError(
+            "'s' parameter is expected to be string. Got '%s'" % type(s))
+    zeros_to_add = expected_length - len(s)
+    if zeros_to_add:
+        s += '0' * zeros_to_add
+    return s
+
+
 def generate_images(path_to_month_dir):
     currecies = ('usd', 'euro')
     data = {
@@ -57,16 +67,20 @@ def generate_images(path_to_month_dir):
                 ind_kurs = get_any_item(json_data, parent_object_labels)
                 if currency == 'usd':
                     usd_data = get_any_item(ind_kurs, usd_uah_labels)
-                    buy = int(usd_data['they_buy'].replace(
-                        '.', '').replace(',', ''))
-                    sell = int(usd_data['they_sell'].replace(
-                        '.', '').replace(',', ''))
+                    buy = int(complement_string_with_zeros(
+                        usd_data['they_buy'].replace('.', '').replace(',', '')
+                    ))
+                    sell = int(complement_string_with_zeros(
+                        usd_data['they_sell'].replace('.', '').replace(',', '')
+                    ))
                 else:
                     eur_data = get_any_item(ind_kurs, eur_uah_labels)
-                    buy = int(eur_data['they_buy'].replace(
-                        '.', '').replace(',', ''))
-                    sell = int(eur_data['they_sell'].replace(
-                        '.', '').replace(',', ''))
+                    buy = int(complement_string_with_zeros(
+                        eur_data['they_buy'].replace('.', '').replace(',', '')
+                    ))
+                    sell = int(complement_string_with_zeros(
+                        eur_data['they_sell'].replace('.', '').replace(',', '')
+                    ))
 
                 date = datetime.datetime.strptime(
                     f.split('/')[-1].split('.')[0], '%Y_%m_%d__%H_%M_%S')
