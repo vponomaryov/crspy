@@ -1,0 +1,24 @@
+{
+    "Индикативный курс": {
+        "eur/uah": {
+            "they_buy": "32,30",
+            "they_sell": "32,45"
+        },
+        "gbr/uah": {
+            "they_buy": "37,40",
+            "they_sell": "38,20"
+        },
+        "plh/uah": {
+            "they_buy": "7,00",
+            "they_sell": "7.25"
+        },
+        "rub/uah": {
+            "they_buy": "0.368",
+            "they_sell": "0.374"
+        },
+        "usd/uah": {
+            "they_buy": "27,25",
+            "they_sell": "27,35"
+        }
+    }
+}
