@@ -52,15 +52,22 @@ def main():
     print_with_time('Downloaded web page at ' + get_current_time())
 
     ############################# Parsing data ################################
-    updated_at = browser.find_elements_by_xpath(
-        "//div[@class='retail-exchange']/b")[0].text.split(': ')[-1]
-
     try:
-        updated_at_dt = datetime.datetime.strptime(
-            updated_at, '%d.%m.%Y - %H:%M')
-    except ValueError:
-        updated_at_dt = datetime.datetime.strptime(
-            ' - '.join(updated_at.split(' ')[-2:]), '%d.%m.%Y - %H:%M')
+        updated_at = browser.find_elements_by_xpath(
+            "//div[@class='retail-exchange']/b")[0].text.split(': ')[-1]
+    except IndexError as exc:
+        print_with_time(
+            "Failed to get 'updated_at' from the web page. "
+            "Use current time for it.\n"
+            "Error: %s" % str(exc))
+        updated_at_dt = datetime.datetime.fromtimestamp(time.time())
+    else:
+        try:
+            updated_at_dt = datetime.datetime.strptime(
+                updated_at, '%d.%m.%Y - %H:%M')
+        except ValueError:
+            updated_at_dt = datetime.datetime.strptime(
+                ' - '.join(updated_at.split(' ')[-2:]), '%d.%m.%Y - %H:%M')
     updated_at = updated_at_dt.strftime(TIME_FORMAT)
     print_with_time('Currency rates updated at ' + updated_at)
 
